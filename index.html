@@ -86,14 +86,23 @@
     .back-btn { background: #eee; border: none; padding: 12px 25px; border-radius: 20px; font-size: 18px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
     .score-board { font-size: 20px; font-weight: bold; color: #ff9800; background: #fff3e0; padding: 10px 20px; border-radius: 20px; }
     
-    .question-box { margin: 10px 0 30px 0; display: flex; flex-direction: column; align-items: center; }
+    .question-box { margin: 10px 0 15px 0; display: flex; flex-direction: column; align-items: center; }
     .q-emoji { font-size: 90px; line-height: 1.2; margin-bottom: 5px; }
     .q-zh { font-size: 24px; color: #64748b; font-weight: bold; margin-bottom: 15px; }
     .audio-btn {
       background: var(--accent1); border: none; border-radius: 50%; width: 50px; height: 50px;
-      font-size: 24px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px;
+      font-size: 24px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 10px;
     }
     .audio-btn:active { transform: scale(0.9); }
+
+    /* 提示訊息區 */
+    .hint-box {
+      font-size: 18px;
+      color: #f59e0b;
+      font-weight: bold;
+      min-height: 27px;
+      margin-bottom: 15px;
+    }
 
     /* 拼字區域 (上方空格) */
     .slots-container {
@@ -112,18 +121,25 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 34px;
-      font-weight: 900;
+      font-size: 38px;
+      font-weight: bold;
       color: var(--accent3);
       cursor: pointer;
-      text-transform: uppercase;
       transition: all 0.2s;
+      /* 已移除大階轉換，顯示原汁原味細階 */
     }
 
     .letter-slot.filled {
       border-bottom-color: var(--accent3);
       background: rgba(199, 206, 234, 0.1);
       border-radius: 8px 8px 0 0;
+    }
+
+    /* 錯5次自動填寫的樣式 */
+    .letter-slot.auto-solved {
+      border-bottom-color: var(--wrong);
+      color: var(--wrong);
+      background: rgba(248, 113, 113, 0.1);
     }
 
     /* 選擇區域 (下方字母) */
@@ -142,15 +158,14 @@
       background: white;
       border: 3px solid var(--accent2);
       border-radius: 12px;
-      font-size: 32px;
-      font-weight: 900;
+      font-size: 34px;
+      font-weight: bold;
       color: var(--text-dark);
       cursor: pointer;
       display: flex;
       justify-content: center;
       align-items: center;
       box-shadow: 0 5px 0px var(--accent2);
-      text-transform: uppercase;
       transition: all 0.1s;
     }
     
@@ -196,6 +211,9 @@
       <button class="audio-btn" onclick="playAudio()">🔊</button>
     </div>
 
+    <!-- 提示訊息 -->
+    <div id="hint-box" class="hint-box"></div>
+
     <!-- 字母填空區 -->
     <div class="slots-container" id="slots-area"></div>
     
@@ -222,7 +240,7 @@
     ]},
     bodyFace: { name: "Body & Face (身體與面部)", emoji: "👤", words: [
       {en: "arm", zh: "手臂", em: "💪"}, {en: "body", zh: "身體", em: "🧍"}, {en: "ear", zh: "耳朵", em: "👂"},
-      {en: "eye", zh: "眼睛", em: "👁️"}, {en: "face", zh: "臉", em: "🙂"}, {en: "foot", zh: "腳", em: "🦶"},
+      {en: "eye", zh: "眼睛", em: "👁️️"}, {en: "face", zh: "臉", em: "🙂"}, {en: "foot", zh: "腳", em: "🦶"},
       {en: "hair", zh: "頭髮", em: "💇"}, {en: "hand", zh: "手", em: "🖐️"}, {en: "head", zh: "頭", em: "👤"},
       {en: "mouth", zh: "嘴", em: "👄"}, {en: "nose", zh: "鼻子", em: "👃"}, {en: "smile", zh: "微笑", em: "😊"}, {en: "leg", zh: "腿", em: "🦵"}
     ]},
@@ -231,7 +249,7 @@
       {en: "baseball cap", zh: "棒球帽", em: "🧢"}, {en: "hat", zh: "帽子", em: "🎩"}, {en: "skirt", zh: "裙子", em: "👗"},
       {en: "boots", zh: "靴子", em: "👢"}, {en: "jacket", zh: "夾克", em: "🧥"}, {en: "sock", zh: "短襪", em: "🧦"},
       {en: "clothes", zh: "衣服", em: "👕"}, {en: "jeans", zh: "牛仔褲", em: "👖"}, {en: "trousers", zh: "褲子", em: "👖"},
-      {en: "dress", zh: "連衣裙", em: "👗"}, {en: "shirt", zh: "襯衫", em: "👔"}, {en: "T-shirt", zh: "T恤", em: "👕"},
+      {en: "dress", zh: "連衣裙", em: "👗"}, {en: "shirt", zh: "襯衫", em: "👔"}, {en: "T-shirt", zh: "t恤", em: "👕"},
       {en: "glasses", zh: "眼鏡", em: "👓"}, {en: "shoe", zh: "鞋子", em: "👞"}, {en: "wear", zh: "穿着", em: "🧍"}
     ]},
     colours: { name: "Colours (顏色)", emoji: "🎨", words: [
@@ -267,13 +285,13 @@
       {en: "armchair", zh: "扶手椅", em: "💺"}, {en: "chair", zh: "椅子", em: "🪑"}, {en: "flat", zh: "公寓", em: "🏢"},
       {en: "bath", zh: "浴缸", em: "🛁"}, {en: "clock", zh: "鐘", em: "🕰️"}, {en: "flower", zh: "花", em: "🌸"},
       {en: "bathroom", zh: "浴室", em: "🚿"}, {en: "computer", zh: "電腦", em: "💻"}, {en: "garden", zh: "花園", em: "🏡"},
-      {en: "bed", zh: "床", em: "🛏️"}, {en: "cupboard", zh: "櫥櫃", em: "🗄️"}, {en: "hall", zh: "大廳", em: "🏛️"},
+      {en: "bed", zh: "床", em: "🛏️"}, {en: "cupboard", zh: "櫥櫃", em: "🗄️️"}, {en: "hall", zh: "大廳", em: "🏛️"},
       {en: "bedroom", zh: "卧室", em: "🛌"}, {en: "desk", zh: "書桌", em: "🪑"}, {en: "home", zh: "家", em: "🏠"},
       {en: "bookcase", zh: "書櫃", em: "📚"}, {en: "dining room", zh: "餐廳", em: "🍽️"}, {en: "house", zh: "房子", em: "🏠"},
       {en: "box", zh: "盒子", em: "📦"}, {en: "doll", zh: "玩具娃娃", em: "🪆"}, {en: "kitchen", zh: "廚房", em: "🍳"},
       {en: "lamp", zh: "燈", em: "🛋️"}, {en: "radio", zh: "收音機", em: "📻"}, {en: "living room", zh: "客廳", em: "🛋️"},
       {en: "room", zh: "房間", em: "🚪"}, {en: "mat", zh: "墊子", em: "🔲"}, {en: "rug", zh: "小地毯", em: "🔲"},
-      {en: "mirror", zh: "鏡子", em: "🪞"}, {en: "sleep", zh: "睡覺", em: "😴"}, {en: "phone", zh: "電話", em: "☎️"},
+      {en: "mirror", zh: "鏡子", em: "🪞"}, {en: "sleep", zh: "睡覺", em: "😴"}, {en: "phone", zh: "電話", em: "☎️️"},
       {en: "sofa", zh: "沙發", em: "🛋️"}, {en: "picture", zh: "圖畫", em: "🖼️"}, {en: "table", zh: "桌子", em: "🪑"},
       {en: "television", zh: "電視", em: "📺"}, {en: "toy", zh: "玩具", em: "🧸"}, {en: "tree", zh: "樹", em: "🌳"},
       {en: "wall", zh: "牆", em: "🧱"}, {en: "watch", zh: "手表", em: "⌚"}, {en: "window", zh: "窗戶", em: "🪟"}
@@ -327,7 +345,7 @@
       {en: "fly", zh: "飛行", em: "✈️"}, {en: "run", zh: "運行", em: "🏃"}
     ]},
     time: { name: "Time (時間)", emoji: "⏰", words: [
-      {en: "afternoon", zh: "下午", em: "🌤️"}, {en: "birthday", zh: "生日", em: "🎂"}, {en: "clock", zh: "時鐘", em: "⏰"},
+      {en: "afternoon", zh: "下午", em: "🌤️️"}, {en: "birthday", zh: "生日", em: "🎂"}, {en: "clock", zh: "時鐘", em: "⏰"},
       {en: "day", zh: "一天", em: "☀️"}, {en: "evening", zh: "傍晚", em: "🌆"}, {en: "today", zh: "今天", em: "📅"},
       {en: "in", zh: "在", em: "⏳"}, {en: "watch", zh: "手表", em: "⌚"}, {en: "morning", zh: "早晨", em: "🌅"},
       {en: "year", zh: "年", em: "🗓️"}, {en: "night", zh: "夜晚", em: "🌙"}
@@ -343,6 +361,7 @@
   let remainingQuizWords = [];
   let currentWordObj = null;
   let score = 0;
+  let wrongAttempts = 0; // 記錄錯誤次數
   
   let answerSlots = [];
   let availableLetters = []; 
@@ -377,6 +396,7 @@
   function startGame(category) {
     currentCategory = category;
     score = 0;
+    wrongAttempts = 0;
     document.getElementById("score").innerText = score;
     document.getElementById("home-screen").style.display = "none";
     document.getElementById("game-screen").style.display = "block";
@@ -402,9 +422,11 @@
     }
 
     currentWordObj = remainingQuizWords.pop();
+    wrongAttempts = 0; // 重置錯誤次數
+    document.getElementById("hint-box").innerText = ""; // 清空提示
     
-    // 忽略字詞中嘅空格，例如 "ice cream" 變 "icecream"
-    const wordStr = currentWordObj.en.replace(/\s+/g, '').toUpperCase();
+    // 忽略字詞中嘅空格，並全部轉做細階 (toLowerCase)
+    const wordStr = currentWordObj.en.replace(/\s+/g, '').toLowerCase();
     
     document.getElementById("q-emoji").innerText = currentWordObj.em;
     document.getElementById("q-zh").innerText = currentWordObj.zh;
@@ -413,8 +435,8 @@
     
     let lettersArray = wordStr.split('');
     
-    // 加入 2 個隨機干擾字母，增加少少難度
-    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    // 加入 2 個隨機干擾字母 (細階)
+    const alphabet = "abcdefghijklmnopqrstuvwxyz";
     lettersArray.push(alphabet[Math.floor(Math.random() * 26)]);
     lettersArray.push(alphabet[Math.floor(Math.random() * 26)]);
     
@@ -492,7 +514,7 @@
     if (answerSlots.includes(null)) return;
 
     const currentSpelling = answerSlots.map(slot => slot.char).join('');
-    const correctSpelling = currentWordObj.en.replace(/\s+/g, '').toUpperCase();
+    const correctSpelling = currentWordObj.en.replace(/\s+/g, '').toLowerCase(); // 細階
 
     if (currentSpelling === correctSpelling) {
       score += 10;
@@ -506,11 +528,50 @@
       
       setTimeout(nextQuestion, 1500);
     } else {
+      // 答錯了
+      wrongAttempts++;
       playTone(200, "sawtooth", 0.3);
       
       const slotsArea = document.getElementById("slots-area");
       slotsArea.classList.add("shake");
       
+      const hintBox = document.getElementById("hint-box");
+
+      // 錯 3 次俾提示
+      if (wrongAttempts === 3) {
+        hintBox.innerText = `💡 提示：第一個字母係「${correctSpelling[0]}」`;
+      } 
+      // 錯 4 次俾更多提示
+      else if (wrongAttempts === 4 && correctSpelling.length > 1) {
+        hintBox.innerText = `💡 提示：開頭係「${correctSpelling.substring(0, 2)}」`;
+      }
+      
+      // 錯 5 次直接俾答案
+      if (wrongAttempts >= 5) {
+        setTimeout(() => {
+          slotsArea.classList.remove("shake");
+          hintBox.innerText = `😅 錯咗 5 次啦！正確答案係：「${correctSpelling}」`;
+          
+          // 自動填上正確答案
+          slotsArea.innerHTML = "";
+          correctSpelling.split('').forEach(char => {
+            const slotDiv = document.createElement("div");
+            slotDiv.className = "letter-slot filled auto-solved";
+            slotDiv.innerText = char;
+            slotsArea.appendChild(slotDiv);
+          });
+          
+          // 清空下方按鈕避免亂撳
+          document.getElementById("letters-area").innerHTML = "";
+          
+          // 等 2.5 秒飛去下一題
+          setTimeout(nextQuestion, 2500);
+        }, 500);
+        
+        return; // 結束，唔執行下面嘅退回字母邏輯
+      }
+
+      // 錯 1-4 次嘅情況：震動完自動清空，俾小朋友重新串過
       setTimeout(() => {
         slotsArea.classList.remove("shake");
         answerSlots.forEach((slotData, index) => {
